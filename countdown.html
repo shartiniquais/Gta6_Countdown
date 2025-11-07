@@ -4,11 +4,12 @@
   <meta charset="UTF-8">
   <title>Countdown GTA VI</title>
   <style>
-    /* Couleurs inspirées de GTA VI : néon rose et cyan */
     :root {
       --gta-pink: #FF1ACD;
       --gta-cyan: #1AB2FF;
       --gta-yellow: #FFC800;
+      --gta-purple: #7F00FF;
+      --gta-indigo: #3B0E63;
       --bg-color: #0a0a0a;
       --text-color: #ffffff;
     }
@@ -18,18 +19,35 @@
       padding: 0;
     }
     body {
+      position: relative;
       background-color: var(--bg-color);
       background-image: url('https://4kwallpapers.com/images/wallpapers/gta-6-teaser-3840x2160-13559.png');
       background-size: cover;
+      background-position: center;
       color: var(--text-color);
       font-family: 'Arial', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
       text-align: center;
       gap: 2rem;
+      padding: 2rem;
+      overflow: hidden;
+    }
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(255,26,205,0.35), transparent 60%),
+                  radial-gradient(circle at 80% 0%, rgba(26,178,255,0.25), transparent 50%),
+                  rgba(0,0,0,0.65);
+      z-index: 0;
+    }
+    body > * {
+      position: relative;
+      z-index: 1;
     }
     h1, h2 {
       text-shadow: 0 0 8px var(--gta-pink), 0 0 16px var(--gta-cyan);
@@ -44,14 +62,49 @@
       letter-spacing: 0.05em;
       text-shadow: 0 0 4px var(--gta-pink), 0 0 8px var(--gta-cyan);
     }
+    .card {
+      width: 80%;
+      max-width: 650px;
+      padding: 1.5rem;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.65);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      box-shadow: 0 0 20px rgba(0,0,0,0.45);
+    }
+    .report-card {
+      border: 1px solid var(--gta-pink);
+      box-shadow: 0 0 18px rgba(255,26,205,0.3), inset 0 0 20px rgba(26,178,255,0.15);
+    }
+    .card-label {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.9rem;
+      color: var(--gta-yellow);
+    }
+    .card-date {
+      font-size: 1rem;
+      color: #f4f4f4;
+    }
     .progress-container {
       width: 80%;
       max-width: 600px;
+    }
+    .report-card .progress-container {
+      width: 100%;
+      max-width: 100%;
     }
     #percent {
       display: block;
       font-size: 1.2rem;
       margin-bottom: 0.5rem;
+      text-shadow: 0 0 4px var(--gta-pink), 0 0 8px var(--gta-cyan);
+    }
+    .percent-label {
+      display: block;
+      font-size: 1.2rem;
+      margin-bottom: 0.35rem;
       text-shadow: 0 0 4px var(--gta-pink), 0 0 8px var(--gta-cyan);
     }
     .progress-bar {
@@ -65,10 +118,14 @@
     .progress-fill {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, var(--gta-pink), var(--gta-cyan));
       border-radius: 15px 0 0 15px;
       transition: width 0.5s ease-in-out;
       box-shadow: 0 0 8px var(--gta-pink), 0 0 16px var(--gta-cyan);
+      background: linear-gradient(90deg, var(--gta-pink), var(--gta-cyan));
+    }
+    .report-fill {
+      background: linear-gradient(90deg, var(--gta-pink), var(--gta-yellow));
+      box-shadow: 0 0 8px var(--gta-pink), 0 0 16px var(--gta-yellow);
     }
     .trailer-info {
       border: 1px solid var(--gta-cyan);
@@ -82,13 +139,24 @@
 </head>
 <body>
 
-  <h1>Temps restant avant la sortie de GTA VI le 26 mai 2026 à 14h00:</h1>
+  <h1>Temps restant avant la sortie de GTA VI le 19 novembre 2026 à 00h00</h1>
   <p id="time-remaining">Chargement...</p>
 
   <div class="progress-container">
     <span id="percent">0%</span>
     <div class="progress-bar">
       <div class="progress-fill"></div>
+    </div>
+  </div>
+
+  <div class="card report-card">
+    <p class="card-label">Date du premier report du jeu</p>
+    <p class="card-date">26 mai 2026 à 14h00</p>
+    <div class="progress-container">
+      <span id="report-percent" class="percent-label">0%</span>
+      <div class="progress-bar">
+        <div id="report-fill" class="progress-fill report-fill"></div>
+      </div>
     </div>
   </div>
 
@@ -105,57 +173,64 @@
   </div>
 
   <script>
-    // Date de début : 1er trailer 05 décembre 2023 à 0h07 et 10 secondes
     const firstTrailer = new Date('2023-12-05T00:07:10');
-    // Date Intermédiaire : 2ème trailer 06 mai 2025 à 15h29 et 4 secondes
     const secondTrailer = new Date('2025-05-06T15:29:04');
-    // Date de sortie GTA VI (Pour l'instant 26 mai 2026, 14h00)
-    const expectedReleaseDate = new Date('2026-05-26T14:00:00');
+    const firstDelayReleaseDate = new Date('2026-05-26T14:00:00');
+    const expectedReleaseDate = new Date('2026-11-19T00:00:00+14:00');
 
-    const timeEl           = document.getElementById('time-remaining');
-    const percentEl        = document.getElementById('percent');
-    const fillEl           = document.querySelector('.progress-fill');
-    const firstTrailerDateEl   = document.getElementById('first-trailer-date');
+    const timeEl = document.getElementById('time-remaining');
+    const percentEl = document.getElementById('percent');
+    const mainFillEl = document.querySelector('body > .progress-container .progress-fill');
+    const reportPercentEl = document.getElementById('report-percent');
+    const reportFillEl = document.getElementById('report-fill');
+    const firstTrailerDateEl = document.getElementById('first-trailer-date');
     const firstTrailerElapseEl = document.getElementById('first-trailer-elapsed');
-    const secondTrailerDateEl  = document.getElementById('second-trailer-date');
-    const secondTrailerElapseEl= document.getElementById('second-trailer-elapsed');
+    const secondTrailerDateEl = document.getElementById('second-trailer-date');
+    const secondTrailerElapseEl = document.getElementById('second-trailer-elapsed');
 
-    // Helper function to format elapsed time (days, hours, minutes)
-    function getElapsedTime(trailerDate) {
+    function getElapsedTime(referenceDate) {
       const now = new Date();
-      let diff = now - trailerDate;
-      if(diff < 0) diff = 0;
-      const days    = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours   = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      let diff = now - referenceDate;
+      if (diff < 0) diff = 0;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
       return `${days}j ${hours}h ${minutes}m ${seconds}s`;
     }
 
+    function getPercent(startDate, endDate) {
+      const now = new Date();
+      const total = endDate - startDate;
+      if (total <= 0) {
+        return 100;
+      }
+      const elapsed = now - startDate;
+      let pct = (elapsed / total) * 100;
+      return Math.min(100, Math.max(0, pct));
+    }
+
     function updateCountdown() {
       const now = new Date();
 
-      // Mise à jour du compte à rebours de sortie
       let diff = expectedReleaseDate - now;
       if (diff < 0) diff = 0;
 
-      const days    = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours   = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
 
       timeEl.textContent = `${days}j ${hours}h ${minutes}m ${seconds}s`;
 
-      // Pourcentage écoulé depuis le premier trailer
-      const total   = expectedReleaseDate - firstTrailer;
-      const elapsed = now - firstTrailer;
-      let pct = ((elapsed / total) * 100).toFixed(5);
-      pct = Math.min(100, Math.max(0, pct));
+      const mainPct = getPercent(firstTrailer, expectedReleaseDate).toFixed(4);
+      percentEl.textContent = `${mainPct}%`;
+      mainFillEl.style.width = `${mainPct}%`;
 
-      percentEl.textContent = `${pct}%`;
-      fillEl.style.width    = `${pct}%`;
+      const reportPct = getPercent(firstTrailer, firstDelayReleaseDate).toFixed(4);
+      reportPercentEl.textContent = `${reportPct}%`;
+      reportFillEl.style.width = `${reportPct}%`;
 
-      // Mise à jour des informations des trailers
       firstTrailerDateEl.textContent = firstTrailer.toLocaleString('fr-FR');
       firstTrailerElapseEl.textContent = getElapsedTime(firstTrailer);
 
